@@ -95,8 +95,8 @@ CodeClass Live bridges both — enabling tutors to **teach, explain, collaborate
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/codeclass-live.git
-cd codeclass-live
+git clone https://github.com/sargamjain5/Athira-dev.git
+cd Athira-dev
 ```
 ### 2. Install dependencies
 ```bash
