@@ -1,4 +1,4 @@
-# 🎓 CodeClass Live
+# CodeClass Live
 
 CodeClass Live is a real-time collaborative learning platform designed for **tutors and students** to conduct interactive coding classes and system design sessions.
 
