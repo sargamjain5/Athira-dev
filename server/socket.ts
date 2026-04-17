@@ -1,45 +1,51 @@
 import { Server } from "socket.io";
 import http from "http";
 
+// Create a basic HTTP server to attach Socket.io to
 const server = http.createServer();
 
 const io = new Server(server, {
   cors: {
-    origin: "*", // In production, replace with your frontend URL
-    methods: ["GET", "POST"]
+    origin: "http://localhost:3000", // Allow your Next.js frontend
+    methods: ["GET", "POST"],
   },
 });
 
 io.on("connection", (socket) => {
-  console.log("🚀 User connected:", socket.id);
+  console.log("✅ User Connected:", socket.id);
 
-  // 1. Join a specific session/room
-  socket.on("join-session", (sessionId: string) => {
-    socket.join(sessionId);
-    console.log(`👤 User ${socket.id} joined room: ${sessionId}`);
+  // Join a specific session room
+  socket.on("join-room", (roomId: string) => {
+    socket.join(roomId);
+    console.log(`👤 User ${socket.id} joined room: ${roomId}`);
   });
 
-  // 2. Handle real-time code updates
+  // Sync Code Changes
+  // We use .broadcast.to() so the sender doesn't receive their own typing back
   socket.on("code-change", ({ sessionId, code }: { sessionId: string; code: string }) => {
-    // .to(sessionId) sends to everyone in the room EXCEPT the sender
-    socket.to(sessionId).emit("code-update", code);
+    socket.broadcast.to(sessionId).emit("code-change", code);
   });
 
-  // 3. Handle Raise Hand
-  socket.on("raise-hand", (sessionId: string) => {
-    // .in(sessionId) sends to EVERYONE in the room including the sender
-    io.in(sessionId).emit("hand-raised", { 
-      userId: socket.id,
-      timestamp: new Date().toLocaleTimeString() 
-    });
+  // Sync Stdin/Input Changes
+  socket.on("input-change", ({ sessionId, input }: { sessionId: string; input: string }) => {
+    socket.broadcast.to(sessionId).emit("input-change", input);
+  });
+
+  // Handle Code Execution broadcast (Student -> Tutor)
+  socket.on("code-run", (data: any) => {
+    // data usually contains { sessionId, code, output, language, studentName }
+    if (data.sessionId) {
+      socket.broadcast.to(data.sessionId).emit("student-code-executed", data);
+      console.log(`🚀 Code execution broadcasted in room: ${data.sessionId}`);
+    }
   });
 
   socket.on("disconnect", () => {
-    console.log("❌ User disconnected:", socket.id);
+    console.log("❌ User Disconnected:", socket.id);
   });
 });
 
 const PORT = 3001;
 server.listen(PORT, () => {
-  console.log(`📡 Socket.io server running on http://localhost:${PORT}`);
+  console.log(`🚀 Socket server running on http://localhost:${PORT}`);
 });
